@@ -1,0 +1,1255 @@
+ΚΩΔΙΚΑΣ SQL // 	A Μερος 
+
+
+CREATE DATABASE staffevaluation DEFAULT CHARSET=greek;
+USE staffevaluation;
+ 
+
+
+CREATE TABLE user (
+  username varchar(12) NOT NULL,
+  password varchar(10) DEFAULT NULL,
+  name varchar(25) NOT NULL DEFAULT 'unknown',
+  surname varchar(35) NOT NULL DEFAULT 'unknown',
+  reg_date datetime DEFAULT NULL,
+  email varchar(30) NOT NULL,
+  PRIMARY KEY (username)
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+
+ CREATE TABLE company (
+  AFM char(9) NOT NULL,
+  DOY varchar(15) DEFAULT NULL,
+  name varchar(35) NOT NULL DEFAULT 'unknown',
+  phone bigint(16) NOT NULL,
+  street varchar(15) NOT NULL,
+  num tinyint(4) DEFAULT NULL,
+  city varchar(15) NOT NULL DEFAULT 'unknown',
+  country varchar(15) NOT NULL DEFAULT 'unknown',
+  PRIMARY KEY (AFM)
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+
+
+ CREATE TABLE manager (
+  managerUsername varchar(12) NOT NULL,
+  exp_years tinyint(4) DEFAULT NULL,
+  firm char(9) NOT NULL,
+  PRIMARY KEY (managerUsername),
+  CONSTRAINT MANAGERCMP FOREIGN KEY (firm) REFERENCES company (AFM) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT MANAGERUSR FOREIGN KEY (managerUsername) REFERENCES user (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci;  
+
+
+
+
+ CREATE TABLE evaluator (
+  username varchar(12) NOT NULL,
+  exp_years tinyint(4) DEFAULT NULL,
+  firm char(9) NOT NULL,
+  PRIMARY KEY (username),
+  CONSTRAINT EVALCMP FOREIGN KEY (firm) REFERENCES company (AFM) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT EVALUSR FOREIGN KEY (username) REFERENCES user (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+ CREATE TABLE employee (
+  username varchar(12) NOT NULL,
+  exp_years tinyint(4) DEFAULT NULL,
+  bio text DEFAULT NULL,
+  sistatikes varchar(35) NOT NULL,
+  certificates varchar(35) NOT NULL,
+  awards varchar(35) NOT NULL,
+  firm char(9) NOT NULL,	
+  PRIMARY KEY (username), 	
+  CONSTRAINT EMPLUSR FOREIGN KEY (username) REFERENCES user (username) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT EMPLCOMP FOREIGN KEY (firm) REFERENCES company (AFM) ON DELETE CASCADE ON UPDATE CASCADE  
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+CREATE TABLE administrator (
+  username varchar(12) NOT NULL,
+  PRIMARY KEY (username),
+  CONSTRAINT ADMINUSR FOREIGN KEY (username) REFERENCES user (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+ 
+
+
+ CREATE TABLE job (
+  id int(4) NOT NULL,
+  start_date date NOT NULL,
+  salary float(6,1) DEFAULT NULL,
+  position varchar(40) DEFAULT NULL,
+  edra varchar(45) DEFAULT NULL,
+  evaluator varchar(12) NOT NULL,
+  announce_date datetime DEFAULT current_timestamp(),
+  submission_date date NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT JOBEVLTR FOREIGN KEY (evaluator) REFERENCES evaluator (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci;  
+
+
+
+ CREATE TABLE project (
+  empl varchar(12) NOT NULL,
+  num tinyint(4) NOT NULL ,
+  descr text NOT NULL,
+  url varchar(60) DEFAULT NULL,
+  PRIMARY KEY (empl,num),
+  CONSTRAINT PROJEMPL FOREIGN KEY (empl) REFERENCES employee (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB  CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+ 
+ CREATE TABLE degree (
+  titlos varchar(50) NOT NULL,
+  idryma varchar(40) NOT NULL,
+  bathmida enum('LYKEIO','UNIV','MASTER','PHD') DEFAULT NULL,
+  PRIMARY KEY (titlos,idryma)
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+ 
+
+ 
+
+ CREATE TABLE has_degree (
+  degr_title varchar(50) NOT NULL,
+  degr_idryma varchar(40) NOT NULL,
+  empl_username varchar(12) NOT NULL,
+  etos year(4) DEFAULT NULL,
+  grade float(3,1) DEFAULT NULL,
+  PRIMARY KEY (degr_title,degr_idryma,empl_username),
+  CONSTRAINT HASDEGR FOREIGN KEY (degr_title, degr_idryma) REFERENCES degree (titlos, idryma) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT HASEMPL FOREIGN KEY (empl_username) REFERENCES employee (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+
+ CREATE TABLE antikeim (
+  title varchar(36) NOT NULL,
+  descr tinytext DEFAULT NULL,
+  belongs_to varchar(36) DEFAULT NULL,
+  PRIMARY KEY (title),
+  CONSTRAINT ANTIKEIM FOREIGN KEY (belongs_to) REFERENCES antikeim (title) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+
+
+ CREATE TABLE needs (
+  job_id int(4) NOT NULL,
+  antikeim_title varchar(36) NOT NULL,
+  PRIMARY KEY (job_id,antikeim_title),
+  CONSTRAINT JOBNEEDS FOREIGN KEY (job_id) REFERENCES job (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT NEEDSANTIK FOREIGN KEY (antikeim_title) REFERENCES antikeim (title) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+ 
+
+
+
+ CREATE TABLE requestsevaluation (
+  empl_usrname varchar(12) NOT NULL,
+  job_id int(4) NOT NULL,
+  PRIMARY KEY (empl_usrname,job_id),
+  CONSTRAINT EVALEMPLOY FOREIGN KEY (empl_usrname) REFERENCES employee (username) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT EVALJ FOREIGN KEY (job_id) REFERENCES job (id) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+ 
+
+
+
+ CREATE TABLE languages (
+  employee varchar(12) NOT NULL,
+  lang set('EN','FR','SP','GR') NOT NULL,
+  PRIMARY KEY (employee,lang),
+  CONSTRAINT EMPLLANG FOREIGN KEY (employee) REFERENCES employee (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+ 
+
+
+ CREATE TABLE evaluationresult (
+    EvId INT(4) NOT NULL ,
+    empl_usrname varchar(12) NOT NULL,
+    job_id int(4) NOT NULL,
+    grade INT(4) NOT NULL ,
+    comments varchar(255) NOT NULL,
+    PRIMARY KEY(EvId,empl_usrname),
+    CONSTRAINT EMPL_EVALR FOREIGN KEY (empl_usrname) REFERENCES employee (username) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT JOB_EVALR FOREIGN KEY (job_id) REFERENCES job (id) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+TA 1) , 2) , 3) ΠΟΥ ΑΚΟΛΟΥΘΟΥΝ ΑΠΟΤΕΛΟΥΝ ΤΙΣ ΕΠΕΚΤΑΣΕΙΣ ΠΟΥ ΕΠΡΕΠΕ ΝΑ ΓΙΝΟΥΝ ΣΤΗΝ ΒΑΣΗ 
+
+
+1) Διαδικασία Αξιολόγησης 
+
+
+Πινακας evaluation συγκρατει τις 3 επιμερους αξιολογησεις. 
+
+
+ CREATE TABLE evaluation (
+  emplusername varchar(12) NOT NULL,
+  evalusername varchar(12) NOT NULL,
+  jobid int(4) NOT NULL,
+  aksiologisi1 enum('0','1','2','3','4') DEFAULT NULL,
+  aksiologisi2 enum('0','1','2','3','4') DEFAULT NULL,
+  aksiologisi3 enum('0','1','2') DEFAULT NULL,
+  comments varchar(255) NOT NULL,
+  eval_id INT(4) NOT NULL,
+  CONSTRAINT EVL_EMP FOREIGN KEY (emplusername) REFERENCES employee (username) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT EVAL_EVL FOREIGN KEY (evalusername) REFERENCES evaluator (username) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT EVAL_JOB FOREIGN KEY (jobid) REFERENCES job (id) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+
+Ενας trigger που θα υπολογιζει το αθροισμα των επιμερους αξιολογησεων καθε φορα που θα εισαγεται 
+ενας βαθμος και θα το καταχωρει στο πεδιο grade του πινακα evaluationresult.
+
+DELIMITER $	
+
+CREATE TRIGGER SumOfEvaluations		 
+AFTER INSERT ON evaluation
+FOR EACH ROW 
+ BEGIN
+   SET @eval_1 = NEW.aksiologisi1;
+   SET @eval_2 = NEW.aksiologisi2;
+   SET @eval_3 = NEW.aksiologisi3;
+   	
+	IF(@eval_1 <> '' AND @eval_2 <> '' AND @eval_3 <> '') THEN
+   	
+	SET @sum = @eval_1 + @eval_2 + @eval_3;
+	
+
+	INSERT INTO evaluationresult
+	VALUES (NEW.eval_id,NEW.emplusername,NEW.jobid,@sum,NEW.comments);
+	END IF;
+	
+
+END $
+DELIMITER;
+
+insert into evaluation values('mnikol','akisgoud',456,'2','4','1','good',42);
+insert into evaluation values('mnikol','akisgoud',456,'2','4',NULL,'good',43);
+
+2) Διαδικασια Υποβολης Αιτησεων 
+
+
+CREATE TABLE requestspromotion (
+  emplo_username varchar(12) NOT NULL,
+  jobID int NOT NULL,
+  PRIMARY KEY (emplo_username,jobID),
+  CONSTRAINT EVALEMPLO FOREIGN KEY (emplo_username) REFERENCES employee (username) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT EVALJOB FOREIGN KEY (jobID) REFERENCES job (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci;
+
+
+
+CREATE TABLE promotion (				
+manag_username varchar(12) NOT NULL,
+evaluat_username varchar(12) NOT NULL,
+id_job INT(4) NOT NULL,
+PRIMARY KEY(manag_username,evaluat_username,id_job),
+CONSTRAINT PROM_MANAG FOREIGN KEY (manag_username) REFERENCES manager(managerUsername) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT PROM_EVAL FOREIGN KEY (evaluat_username) REFERENCES evaluator(username) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT PROM_JO FOREIGN KEY (id_job) REFERENCES job(id) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+DELIMITER $	
+
+
+CREATE TRIGGER applyingforjob_promotion			
+BEFORE INSERT ON requestspromotion
+FOR EACH ROW
+ BEGIN
+
+  	IF NEW.jobID NOT IN (SELECT id_job FROM promotion WHERE id_job=NEW.jobID)
+  THEN 
+          SIGNAL SQLSTATE VALUE '45000'
+	  SET MESSAGE_TEXT = 'There is no promotion for this job.';
+	  
+	
+	END IF;
+END $
+DELIMITER ;
+
+insert into requestspromotion values('mnikol',321);
+insert into requestspromotion values('mnikol',369);
+
+3) Διατηρηση Πινακα Ενεργειων (log)  
+
+
+
+CREATE TABLE log (				
+username_xrhsth varchar(12) DEFAULT NULL,
+Date_time datetime DEFAULT NULL,
+ektelesi enum('YES','NO') NOT NULL,
+typeofaction varchar(10) NOT NULL,
+table_name varchar(25) NOT NULL,      
+CONSTRAINT LOG_USER FOREIGN KEY (username_xrhsth) REFERENCES user (username) ON DELETE CASCADE ON UPDATE CASCADE
+)ENGINE = InnoDB CHARACTER SET greek COLLATE greek_general_ci; 
+
+
+
+3) ΑΚΟΛΟΥΘΟΥΝ ΟΙ STORED PROCEDURES ΠΟΥ ZΗΤΟΥΝΤΑΙ ΣΤΟ 3o ΕΡΩΤΗΜΑ ΤΟΥ 1ου ΜΕΡΟΥΣ ΤΟΥ PROJECT.
+
+3.1 STORED PROCEDURE 		
+DELIMITER $   	
+ 
+CREATE PROCEDURE aitiseis_aksiologiseis_evaluatorOfEmployee (IN Name varchar(25), IN SurName varchar(35))
+BEGIN
+
+	DECLARE Username VARCHAR(12);
+	SELECT username INTO Username FROM user WHERE user.name=Name AND user.surname=SurName;
+	
+	IF(Username NOT IN (SELECT empl_usrname FROM requestsevaluation) AND Username NOT IN (SELECT emplo_username FROM requestspromotion)) THEN
+	SELECT 'There are no evaluation and promotion requests for this employee.';
+	
+	ELSE 
+	SELECT 'Evaluation requests:';
+	SELECT empl_usrname,job_id FROM requestsevaluation INNER JOIN employee ON employee.username=empl_usrname 
+	INNER JOIN user ON user.username=employee.username WHERE user.name=Name AND user.surname=SurName;
+	SELECT 'Promotion requests:';
+	SELECT emplo_username,jobID FROM requestspromotion INNER JOIN employee ON employee.username=emplo_username 
+	INNER JOIN user ON user.username=employee.username WHERE user.name=Name AND user.surname=SurName;
+	END IF;
+
+	IF(Username NOT IN (SELECT empl_usrname FROM evaluationresult)) THEN
+	SELECT 'This employee hasnt been fully evaluated.';
+	
+	ELSE
+	SELECT EvId,empl_usrname,job_id,grade,comments FROM evaluationresult INNER JOIN employee ON employee.username=empl_usrname 
+	INNER JOIN user ON user.username=employee.username WHERE user.name=Name AND user.surname=SurName;
+
+	SELECT evalusername FROM evaluation INNER JOIN employee ON employee.username=emplusername 
+	INNER JOIN user ON user.username=employee.username WHERE user.name=Name AND user.surname=SurName; 
+
+	END IF;
+	
+
+	IF(Username NOT IN (SELECT emplusername FROM evaluation)) THEN
+	SELECT 'This employee hasnt been evaluated at all.';
+	
+	ELSE 
+	
+	SELECT 'Aksiologisi se ekseliksi.'; 
+	SELECT emplusername,evalusername,jobid,aksiologisi1,aksiologisi2,aksiologisi3,comments,eval_id  FROM evaluation INNER JOIN employee ON employee.username=emplusername 
+	INNER JOIN user ON user.username=employee.username WHERE user.name=Name AND user.surname=SurName AND (aksiologisi1 IS NULL OR aksiologisi2 IS NULL OR aksiologisi3 IS NULL); 
+	
+	END IF;
+	
+END $
+DELIMITER ;
+
+
+
+3.2 STORED PROCEDURE 
+
+DELIMITER $  
+
+CREATE PROCEDURE TelikeskaiOristikopoihmenes_aksiologiseis (IN id_thesis INT, IN evaluator_name varchar(12))
+BEGIN
+	DECLARE grade1 INT;
+	DECLARE grade2 INT;
+	DECLARE grade3 INT;
+	DECLARE finishedFlag INT;
+	DECLARE gcursor CURSOR FOR SELECT aksiologisi1,aksiologisi2,aksiologisi3 
+	FROM evaluation WHERE jobid=id_thesis AND evalusername=evaluator_name;
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET finishedFlag=1;
+	OPEN gcursor;
+	SET finishedFlag=0;
+	
+	IF(id_thesis NOT IN (SELECT jobid FROM evaluation WHERE jobid=id_thesis )) THEN
+	SELECT 'There is no evaluation for this job.';
+	END IF;
+	
+	IF(evaluator_name NOT IN (SELECT evalusername FROM evaluation WHERE evalusername=evaluator_name )) THEN
+	SELECT 'There is no evaluation for this job.';
+	END IF;
+	
+	REPEAT 
+	  FETCH gcursor INTO grade1,grade2,grade3;
+	  IF(finishedFlag=0) THEN
+		
+		IF(grade1 IS NULL OR grade2 IS NULL OR grade3 IS NULL) THEN	
+		SELECT 'Den iparxoun bathmoi kai stis 3 faseis aksiologisis';
+		SELECT * FROM evaluation WHERE jobid=id_thesis AND evalusername=evaluator_name AND (aksiologisi1 IS NULL OR aksiologisi2 IS NULL OR aksiologisi3 IS NULL);
+         	 ELSE 
+		SELECT 'TELIKH KAI ORISTIKOPOIHMENH AKSIOLOGISI';
+	
+		SELECT * FROM evaluationresult WHERE job_id IN (SELECT jobid FROM evaluation WHERE jobid=id_thesis AND evalusername=evaluator_name 
+		AND (aksiologisi1 <>'' AND aksiologisi2 <>'' OR aksiologisi3 <>''));
+	 	
+		 END IF;
+        
+	  END IF;
+	UNTIL (finishedFlag=1)
+	END REPEAT;
+	CLOSE gcursor;
+
+END $
+DELIMITER ;
+
+		 
+
+3.3 STORED PROCEDURE  
+
+DELIMITER $   
+
+
+CREATE PROCEDURE oristikopoihmenes_aksiologhseis(IN kwdikos_job INT(4))
+BEGIN
+
+	
+	DECLARE COUNTER INT;
+	
+	SELECT COUNT(*) INTO COUNTER from evaluation where jobid=kwdikos_job AND (aksiologisi1 IS NULL OR aksiologisi2 IS NULL OR aksiologisi3 IS NULL);
+	
+	IF (kwdikos_job NOT IN (SELECT job_id FROM evaluationresult)) THEN
+	SELECT 'Den iparxei aksiologisi gia auth thn thesh.';
+	ELSE 
+	SELECT 'Oristikopoihmenoi pinakes.';
+	SELECT * FROM evaluationresult WHERE job_id=kwdikos_job ORDER BY grade DESC;
+	END IF;
+	
+	IF(kwdikos_job IN(SELECT jobid FROM evaluation WHERE (aksiologisi1 IS  NULL OR aksiologisi2 IS  NULL OR aksiologisi3 IS NULL)))
+ THEN
+	SELECT * FROM evaluation WHERE jobid=kwdikos_job AND (aksiologisi1 IS NULL OR aksiologisi2 IS NULL OR aksiologisi3 IS NULL) ORDER BY aksiologisi1,aksiologisi2,aksiologisi3 DESC;
+	
+	ELSE
+	SELECT 'Den iparxoyn aksiologiseis se ekseliksi gia ayth thn thesi.';
+	END IF;
+	
+	IF(COUNTER >0 ) THEN
+	SELECT 'Aksiologisi se ekseliksi...ekremmoun aitiseis';
+	SELECT COUNTER;
+	
+	ELSE
+	SELECT 'Den uparxoun upopshfioi';
+	
+	END IF;
+	
+END $
+
+
+
+4) TRIGGERS ΠΟΥ ΖΗΤΟΥΝΤΑΙ ΣΤΟ 4ο ΕΡΩΤΗΜΑ ΤΟΥ 1ου ΜΕΡΟΥΣ ΤΟΥ PROJECT.  //trexoyn ta update kai gia tis dyo periptwseis , delete kai insert mono gia epityxia
+
+//για τους 9 πρωτους εχω βαλει σαν χρηστη αυτον που συνδεεται με το login
+
+1. 
+
+DELIMITER $
+
+CREATE TRIGGER inserting_intojob
+BEFORE INSERT ON job
+FOR EACH ROW 
+BEGIN
+
+	IF(NEW.id IN (SELECT id FROM job))
+THEN
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'NO','INSERT','job');
+
+	ELSE
+ 	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'YES','INSERT','job');
+	END IF;
+
+END$
+
+DELIMITER ;
+πχ
+insert into job values(222,'2020-01-02',2000,'data analyst','Patra, Greece','swtirzan','2019-08-19 12:45:00','2020-05-10');
+2.
+
+DELIMITER $
+
+CREATE TRIGGER updatingtable_job
+BEFORE UPDATE ON job
+FOR EACH ROW
+BEGIN
+	
+
+	
+	IF(NEW.id=OLD.id AND NEW.start_date=OLD.start_date AND NEW.salary=OLD.salary AND NEW.position=OLD.position AND OLD.edra=NEW.edra AND OLD.evaluator=NEW.evaluator 
+	AND NEW.announce_date=OLD.announce_date AND NEW.submission_date=OLD.submission_date)  THEN
+	
+	
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'NO','UPDATE','job');
+
+	ELSE
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'YES','UPDATE','job');
+
+	END IF;
+END $
+
+3.
+
+CREATE TRIGGER deletingfrom_job
+BEFORE DELETE ON job
+FOR EACH ROW
+BEGIN
+	
+	IF(OLD.id NOT IN (SELECT id FROM job)) THEN
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'NO','DELETE','job');
+
+	ELSE
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'YES','DELETE','job');
+
+	END IF;
+END$
+
+DELIMITER $
+
+4.
+
+CREATE TRIGGER insertinginto_employee
+BEFORE INSERT ON employee
+FOR EACH ROW 
+BEGIN
+	
+
+	IF(NEW.username IN (SELECT username FROM employee))
+	THEN
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'NO','INSERT','employee');
+
+	ELSE
+ 	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'YES','INSERT','employee');
+	END IF;
+
+END$
+
+DELIMITER ;
+insert into user values('kostaspan','kos12','Kostas','Panagiotou','2017-03-02 14:15:08','kostapan@yahoo.gr');
+insert into employee values('kostaspan',5,'bio20','sistatikes20','certificates20','awards20','05694712');
+5.
+
+DELIMITER $
+
+CREATE TRIGGER updatingtable_employee
+BEFORE UPDATE ON employee
+FOR EACH ROW
+BEGIN
+	 
+	IF(NEW.username=OLD.username AND NEW.exp_years=OLD.exp_years AND NEW.bio=OLD.bio AND NEW.sistatikes=OLD.sistatikes AND NEW.certificates=OLD.certificates 
+	AND OLD.awards=NEW.awards AND OLD.firm=NEW.firm) THEN
+	
+	 
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'NO','UPDATE','employee');
+	
+	ELSE
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'YES','UPDATE','employee');
+	END IF;
+END $
+
+6.
+
+
+CREATE TRIGGER deletingfrom_employee
+BEFORE DELETE ON employee
+FOR EACH ROW
+BEGIN
+	
+	IF(OLD.username NOT IN (SELECT username FROM employee)) THEN
+	
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'NO','DELETE','employee');
+
+	ELSE
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'YES','DELETE','employee');
+	END IF;
+END $
+
+7.
+DELIMITER $
+CREATE TRIGGER insertinginto_requestsevaluation
+BEFORE INSERT ON requestsevaluation
+FOR EACH ROW 
+BEGIN
+
+	IF(NEW.empl_usrname IN (SELECT empl_usrname FROM requestsevaluation) AND NEW.job_id IN (SELECT job_id FROM requestsevaluation) )
+	
+THEN
+	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'NO','INSERT','requestsevaluation');
+
+	ELSE
+ 	INSERT INTO log
+	VALUES(@useronoma,CURRENT_TIMESTAMP,'YES','INSERT','requestsevaluation');
+	END IF;
+
+END$
+
+DELIMITER ;
+
+insert into requestsevaluation values('kostaspan',1);
+insert into requestspromotion values('mnikol',369);
+8.
+
+DELIMITER $
+
+CREATE TRIGGER updatingtable_requestsevaluation
+BEFORE UPDATE ON requestsevaluation
+FOR EACH ROW
+BEGIN
+	
+	IF(NEW.empl_usrname=OLD.empl_usrname AND NEW.job_id=OLD.job_id) THEN
+
+	INSERT INTO log
+	VALUES(@useronoma ,CURRENT_TIMESTAMP,'NO','UPDATE','requestsevaluation');
+	
+	ELSE
+	INSERT INTO log
+	VALUES(@useronoma ,CURRENT_TIMESTAMP,'YES','UPDATE','requestsevaluation');
+	END IF;
+END $
+    
+
+9. 
+DELIMITER $
+CREATE TRIGGER deletingfrom_requestsevaluation
+BEFORE DELETE ON requestsevaluation
+FOR EACH ROW
+BEGIN
+	
+	IF(OLD.empl_usrname NOT IN (SELECT empl_usrname FROM requestsevaluation) AND OLD.job_id NOT IN (SELECT job_id FROM requestsevaluation)) THEN
+	INSERT INTO log
+	VALUES(@useronoma ,CURRENT_TIMESTAMP,'NO','DELETE','requestsevaluation');
+
+	ELSE
+	INSERT INTO log
+	VALUES(@useronoma ,CURRENT_TIMESTAMP,'YES','DELETE','requestsevaluation');
+	
+	END IF;
+END$
+
+
+
+10.
+
+DELIMITER $
+CREATE TRIGGER cannotchangefieldsofcompany
+BEFORE UPDATE ON company
+FOR EACH ROW
+BEGIN
+	IF(NEW.AFM <> OLD.AFM OR NEW.DOY <> OLD.DOY OR NEW.name <> OLD.name) THEN
+	SET NEW.AFM=OLD.AFM;
+	SET NEW.DOY=OLD.DOY;
+	SET NEW.name=OLD.name;
+	END IF;
+END $
+
+
+
+11.
+
+DELIMITER $
+CREATE TRIGGER usercannotchangefields
+BEFORE UPDATE ON user
+FOR EACH ROW
+BEGIN
+	IF (@useronoma IN (SELECT managerUsername FROM manager)) THEN
+	SET NEW.username=OLD.username;
+	SET NEW.name=OLD.name;
+	SET NEW.surname=OLD.surname;
+	SET NEW.reg_date=OLD.reg_date;
+	
+	ELSEIF(@useronoma IN (SELECT username FROM evaluator)) THEN
+	SET NEW.username=OLD.username;
+	
+	ELSEIF(@useronoma IN (SELECT username FROM employee)) THEN
+	SET NEW.email=OLD.email;
+	SET NEW.username=OLD.username;
+	SET NEW.name=OLD.name;
+	SET NEW.surname=OLD.surname;
+	SET NEW.reg_date=OLD.reg_date;
+
+	ELSEIF(@useronoma IN (SELECT username FROM administrator)) THEN
+	SET NEW.username=OLD.username;
+	
+	
+	END IF;
+END $
+
+
+
+//Stored procedures που χρησιμοποιησαμε για το B Μερος 
+
+
+
+
+//stored procedure που παιρνει το username του user που συνδεεται και το αποθηκευει στον log καθε φορα που γινονται οι πραξεις delete insert update
+
+DELIMITER $
+CREATE PROCEDURE paretousername(IN usernamexrhsth varchar(12))
+BEGIN
+ 	SET @useronoma=usernamexrhsth;
+END$
+
+
+
+για τα GUI 2O ΜΕΡΟΣ
+
+
+
+//STORED PROCEDURE που δεχεται ως ορισματα το username του μανατζερ και τα στοιχεια της εταιρειας του που δινει και θελει να τα αλλαξει
+
+//1h koukida tou manager
+
+DELIMITER $
+
+
+CREATE PROCEDURE syndesicompanyupdate(IN usernamemanager varchar(12),IN phonecmp bigint,IN streetcmp varchar(15),IN numcmp INT,IN citycmp varchar(15),IN countrycmp varchar(15))
+BEGIN
+
+	DECLARE etairia char(9);
+	SELECT firm INTO etairia FROM manager WHERE managerUsername=usernamemanager;
+	UPDATE company SET phone =  phonecmp ,  street =  streetcmp , num =  numcmp , city=citycmp,  country = countrycmp
+	WHERE AFM=etairia;
+END $ 
+	
+
+//3h koukida tou manager
+
+CREATE PROCEDURE syndesimisthos_manager1(IN username_manag varchar(12),IN idjob INT,IN salary_job float)
+BEGIN	
+	DECLARE Job INT(4);
+	SELECT id_job INTO Job FROM promotion INNER JOIN manager ON manag_username=managerUsername WHERE managerUsername=username_manag AND id_job=idjob ;
+	
+	UPDATE job SET salary = salary_job WHERE id=Job;
+
+
+END $
+
+//4h koukida tou manager 
+
+CREATE PROCEDURE emfaniseapotelesmataston_manager(IN managusername varchar(12))
+BEGIN
+	SELECT EvId,empl_usrname,job_id,grade,comments FROM evaluationresult INNER JOIN employee ON username=empl_usrname INNER JOIN company ON AFM=employee.firm 
+	INNER JOIN manager ON manager.firm=AFM WHERE managerUsername=managusername;
+
+END $
+
+//6h koukida tou manager
+
+CREATE PROCEDURE emfanisefakeloemployee(IN user_manager varchar(12))
+BEGIN
+	DECLARE compan char(9);
+	SELECT firm INTO compan FROM manager WHERE managerUsername=user_manager;
+	SELECT * from employee WHERE employee.firm =compan;
+	
+END $
+
+
+//6h koukida tou manager
+
+CREATE PROCEDURE allaksestoixeiaemployee(IN manager_user varchar(12),IN emplusername varchar(12),IN sistat varchar(35),IN certific varchar(35),IN vraveia varchar(35))
+BEGIN 
+	call emfanisefakeloemployee(manager_user);
+	UPDATE employee set sistatikes = sistat, certificates = certific , awards= vraveia WHERE employee.username=emplusername;
+
+END $
+
+
+
+
+//5h koukida tou manager 
+DELIMITER $
+CREATE PROCEDURE emfanise_averagevathmo_anaevaluator(IN manag_uname varchar(12))
+BEGIN
+	DECLARE average_vathmos INT;
+	DECLARE aksiologitis varchar(12);
+	DECLARE finished_flag INT;
+
+	DECLARE evalcursor CURSOR FOR SELECT evalusername FROM evaluation INNER JOIN evaluator ON evaluator.username=evalusername INNER JOIN company ON AFM=evaluator.firm 
+	INNER JOIN manager ON manager.firm=AFM WHERE managerUsername=manag_uname;
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished_flag=1;
+	OPEN evalcursor;
+	SET finished_flag=0;
+	
+
+	REPEAT 
+	  FETCH evalcursor INTO aksiologitis;
+	  IF(finished_flag=0) THEN 
+          	Select evalusername,(SUM(aksiologisi1+aksiologisi2+aksiologisi3)/COUNT(aksiologitis)) as AverageGrade
+		from evaluation where evalusername=aksiologitis group by aksiologitis;
+	  END IF;
+       UNTIL (finished_flag=1)
+       END REPEAT;
+       CLOSE evalcursor;
+	
+	
+END $
+
+CREATE PROCEDURE emfanise_averagevathmo_anaevaluator(IN manag_uname varchar(12))
+BEGIN
+	SELECT evalusername,AVG(aksiologisi1+aksiologisi2+aksiologisi3) as 'Average Grade per Evaluator' FROM evaluation INNER JOIN evaluator ON evaluator.username=evalusername INNER JOIN company ON AFM=evaluator.firm 
+	INNER JOIN manager ON manager.firm=AFM WHERE managerUsername=manag_uname;
+	
+
+	
+
+//employee 1η κουκιδα 
+
+DELIMITER $
+CREATE PROCEDURE blepeifakelo (IN employeeusername varchar(12))
+BEGIN 
+	SELECT employee.username,exp_years,bio,sistatikes,certificates,awards,firm FROM employee INNER JOIN user ON user.username=employee.username WHERE user.username=employeeusername;
+	SELECT username,password,name,surname,reg_date,email FROM user  WHERE user.username=employeeusername;
+END $
+DELIMITER ;
+
+
+//employee 2η κουκιδα
+DELIMITER $
+CREATE PROCEDURE requestforjob_promotion(IN username_employee varchar(12),IN id_thesispromotion INT)
+BEGIN
+	IF( username_employee NOT IN (SELECT emplo_username FROM requestspromotion WHERE jobID=id_thesispromotion) AND id_thesispromotion NOT IN(SELECT jobID FROM requestspromotion WHERE emplo_username= username_employee )) THEN
+	INSERT INTO requestspromotion
+	VALUES(username_employee,id_thesispromotion);
+	ELSE 
+	SELECT 'You have requested for this job.';
+	END IF;
+END $
+
+
+
+//administrator 1h koykida-manager account
+
+
+DELIMITER $
+CREATE PROCEDURE admininsert_manager(IN man_username varchar(12),IN password varchar(10),IN name varchar(25),IN surname varchar(35) ,IN email varchar(30),IN exp_years INT,IN firm char(9))
+BEGIN
+ 	INSERT INTO user 
+	VALUES(man_username,password,name,surname,CURRENT_TIMESTAMP,email);
+	INSERT INTO manager
+	VALUES(man_username,exp_years,firm);
+END $
+
+
+//administrator 1h koykida-evaluator account
+
+
+DELIMITER $
+CREATE PROCEDURE admininsert_evaluator(IN eval_username varchar(12),IN eval_password varchar(10),IN eval_name varchar(25),IN eval_surname varchar(35) ,IN eval_email varchar(30),IN eval_exp_years INT,IN eval_firm char(9))
+BEGIN
+	INSERT INTO user 
+	VALUES(eval_username,eval_password,eval_name,eval_surname,CURRENT_TIMESTAMP,eval_email);
+	INSERT INTO evaluator
+	VALUES(eval_username,eval_exp_years,eval_firm);
+
+END $
+
+//administrator 1h koykida-employee account
+DELIMITER $
+CREATE PROCEDURE admininsert_employee(IN e_username varchar(12),IN e_password varchar(10),IN e_name varchar(25),IN e_surname varchar(35) ,IN e_email varchar(30),IN e_exp_years INT,IN  e_bio text,IN  e_sistatikes varchar(35),IN e_certificates varchar(35),IN e_awards varchar(35),IN e_firm char(9))
+BEGIN
+	INSERT INTO user 
+	VALUES(e_username,e_password,e_name,e_surname,CURRENT_TIMESTAMP,e_email);
+	INSERT INTO employee
+	VALUES(e_username,e_exp_years,e_bio,e_sistatikes,e_certificates,e_awards,e_firm);
+
+END $
+
+
+
+
+
+//evaluator 2h koukida 
+CREATE PROCEDURE evaluator_seejobpromotions(IN eval_username varchar(12))
+BEGIN
+	DECLARE etaireia char(9);
+	SELECT firm INTO etaireia  FROM evaluator WHERE evaluator.username=eval_username;
+	SELECT id,start_date,salary,position,edra,evaluator,announce_date,submission_date FROM job INNER JOIN evaluator ON evaluator.username=evaluator WHERE firm=etaireia AND id IN (SELECT id_job from promotion);	
+END$
+
+
+
+//evaluator 2h koukida 
+CREATE PROCEDURE evaluator_updatejobpromotion(IN PJid int,IN pjstart_date date,IN pjsalary float,IN pjposition varchar(40),IN pjedra varchar(45),IN eval_username varchar(12) ,IN pjsubmission_date date)
+BEGIN
+
+	UPDATE job SET start_date=pjstart_date ,salary=pjsalary, position=pjposition, edra=pjedra, announce_date=CURRENT_TIMESTAMP, submission_date=pjsubmission_date WHERE id=PJid  AND evaluator=eval_username;
+
+END $
+
+
+//evaluator 3h koukida
+CREATE PROCEDURE insertjobpromotion(IN id int,IN start_date date,IN salary float,IN position varchar(40),IN edra varchar(45),IN eval_username varchar(12) ,IN submission_date date,IN antikeim_title varchar(36))
+BEGIN
+	DECLARE etaireia char(9);
+	DECLARE manager varchar(12);
+	SELECT firm INTO etaireia FROM evaluator WHERE evaluator.username=eval_username;
+	SELECT managerUsername into manager from manager where firm=etaireia;
+	
+	INSERT INTO job
+	VALUES(id,start_date,salary,position,edra,eval_username,CURRENT_TIMESTAMP,submission_date);
+	INSERT INTO promotion
+	VALUES(manager,eval_username,id);
+	INSERT INTO needs
+	VALUES(id,antikeim_title);
+END $
+
+
+
+//evaluator koukida 4h 
+CREATE PROCEDURE updatejobs_youhaveannounced(IN Jid int,IN jstart_date date,IN jsalary float,IN jposition varchar(40),IN jedra varchar(45),IN eval_username varchar(12) ,IN jsubmission_date date)
+BEGIN
+	UPDATE job SET start_date=jstart_date ,salary=jsalary, position=jposition, edra=jedra, announce_date=CURRENT_TIMESTAMP, submission_date=jsubmission_date WHERE id=Jid  AND evaluator=eval_username;
+END $
+
+
+
+//evaluator 7h koukida
+CREATE PROCEDURE jobsinevaluatorscompany(IN eval_username varchar(12))
+BEGIN
+	DECLARE etairia char(9);
+	SELECT firm INTO etairia FROM evaluator WHERE username=eval_username;
+	SELECT id,start_date,salary,position,edra,evaluator,announce_date,submission_date FROM job INNER JOIN evaluator ON evaluator.username=evaluator WHERE firm=etairia;
+	
+END $
+
+
+//evaluator 5h koykida
+
+CREATE PROCEDURE showrequestcount(IN thesi_ergasias INT)
+BEGIN 
+	SELECT 'No. of Evaluation Requests';
+	SELECT COUNT(empl_usrname) AS 'No. of Evaluation Requests' FROM requestsevaluation WHERE job_id=thesi_ergasias;
+	SELECT 'No. of Promotion Requests';
+	SELECT COUNT(emplo_username) AS 'No. of Promotion Requests' FROM requestspromotion WHERE jobID=thesi_ergasias;
+END $
+
+
+//INSERT στους πινακες
+
+
+
+//ADD MANAGERS
+INSERT INTO user VALUES
+('nikospap','1123','Nikos','Papadopoulos','1992-10-02 12:00:00','papadop@gmail.com'),
+('panxrist','112','Panagioths','Xristopoulos','1995-05-20 14:00:00','xristo@mail.com'),
+('Theoxrist','253','Theodwra','Xristou','2001-11-12 12:21:00','theodxristo@gmail.com'),
+('nikipap','343','Niki','Papadopoulou','2010-04-03  14:00:00','papadopoulou@gmail.com'),
+('vasmitr','515','Vasiliki','Dimitriou','2009-02-20 13:00:00','dimitr@hotmail.com'),
+('stavroskost','166','Stavros','Kostopoulos','2004-09-25 09:00:00','kostopoulos@hotmail.com'),
+('ptolkor','222','Ptolemaios','Koromilas','2003-05-16 14:10:00','koromilas@yahoo.com');
+
+
+//ADD ADMINISTRATORS
+INSERT INTO user VALUES
+('xristanag','764','Xristina','Anagnwstopoulou','2011-09-01 10:00:00','anagnos@hotmail.gr'),
+('mairypap','646','Mairy','Papas','2006-12-05 14:05:00','mapapado@yahoo.com'),
+('iosifzax','543','Iosif','Zaxariou','2007-01-08 11:00:00','zaxar@mail.com'),
+('marzax','348','Maria','Zaxariou','2011-02-20 17:00:00','zaxarm@mail.com');
+
+
+//ADD EMPLOYEES
+INSERT INTO user VALUES
+('mnikol', 'm@n0lis', 'Manolis', 'Nikopoloulos', '2017-11-08 21:07:12', 'nikolp@gmail.com'),
+('abrown', 'w1lcoxon', 'Andrew', 'McBrown', '2018-01-27 16:02:56', 'andrewbr@yahoo.com'),
+('elenineo','369','Eleni','Neofytou','2016-01-06 14:50:00','neofytoue@gmail.com'),
+('kwstasneo','2149','Neofytos','Kwstas','2005-03-14 16:10:00','neofytos@gmail.com'),
+('cleogeo', 'upL34r', 'Cleomenis', 'Georgiadis', '2018-02-13 12:23:34', 'cleom17@gmail.com'),
+('zazahir23', 'zoolhger', 'Ahmet', 'Mobasher-Hirs', '2017-05-11 14:08:23', 'ahmetTech@yahoo.com'),
+('lionarF', 'erg2378', 'Freddy', 'Lionar', '2018-10-07 20:09:10', 'Lionarfre@ezra.co.uk'),
+('liagourma', 'sionpass', 'Maria', 'Liagkoumi', '2018-05-22 17:03:01', 'mliagkr@gmail.com'),
+('msmith','lol123','Mike','Smith','2014-02-01 17:00:00','msmith@hotmail.com'),
+('jennyk','k555','Jenny','Kiriakou','2013-03-20 20:21:00','jenkir@gmail.com'),
+('miltH','milto95','Miltiadis','Hristidis','2019-07-22 16:51:32','miltiadis@yahoo.com');
+
+
+//ADD EVALUATORS
+INSERT INTO user VALUES
+('hlgeor','hlias90','Hlias','Georgiadis','2003-02-12 12:00:21','hl20@mail.com'),
+('vlasster','sterr','Vlassis','Stergiou','2005-12-25 14:20:00','stervl@gmail.gr'),
+('akisgoud','we341','Akis','Goudis','2008-06-17 13:15:00','ak@hotmail.com'),
+('efstang','ef38','Efstathios','Anagnwstakis','2006-05-14 15:20:59','anagef@yahoo.gr'),
+('adonkab','kab78','Adonis','Kabouris','2010-01-01 10:16:20','adon@mail.gr'),
+('dionkok','67kok','Dionisios','Kokkinakis','2000-02-12 16:00:41','dionk@hotmail.com'),
+('swtirzan','swt235','Swtiris','Zanos','2007-03-12 18:05:30','swtiris@yahoo.com');
+
+
+INSERT INTO company VALUES
+('023453344', 'C Patras', 'EXPENDITURE Ltd', 2610256321, 'Maizonos', 123, 'Patra', 'Greece'), 
+('023451232', 'A Patras', 'Typology Ltd', 2610231452, 'Korinthou', 56, 'Patra', 'Greece'),
+('123432211', 'A Geraka', 'SoftSol A.E.', 2103452133, 'Ahepa', 44, 'Athina', 'Greece'), 
+('18765549', 'C Peiraia', 'Unigram', 2103452672, 'Karaiskaki', 10, 'Peiraias', 'Greece'),
+('561234561', 'GS 35321 L', 'InCodeWeTrust', 1242345612, 'Oxford', 12, 'London', 'United Kingdom'), 
+('23122345', 'SF 1234 BG', 'SocialSc', 3200123451, 'General Sklevi', 35, 'Sofia', 'Bulgaria'),
+('05694712','A Athinwn','Electrical A.A.',2100202022,'Kifisias',26,'Athina','Greece');
+
+
+
+INSERT INTO manager VALUES
+('nikospap',2,'023453344'),
+('panxrist',5,'023451232'),
+('Theoxrist',1,'123432211'),
+('nikipap',6,'18765549'),
+('vasmitr',3,'561234561'),
+('stavroskost',9,'23122345'),
+('ptolkor',5,'05694712');
+
+
+INSERT INTO evaluator VALUES
+('hlgeor',10,'18765549'),
+('vlasster',8,'023451232'),
+('akisgoud',11,'123432211'),
+('efstang',3,'18765549'),
+('adonkab',5,'561234561'),
+('dionkok',1,'23122345'),
+('swtirzan',7,'05694712');
+
+
+INSERT INTO employee VALUES
+('mnikol',3,'bio1','sistatikes1','certificates1','awards1','023453344'),
+('abrown',4,'bio2','sistatikes2','certificates2','awards2','023451232'),
+('elenineo',2,'bio3','sistatikes3','certificates3','awards3','123432211'),
+('kwstasneo',1,'bio4','sistatikes4','certificates4','awards4','18765549'),
+('cleogeo',6,'bio5','sistatikes5','certificates5','awards5','561234561'),
+('zazahir23',1,'bio6','sistatikes6','certificates6','awards6','23122345'),
+('lionarF',8,'bio7','sistatikes7','certificates7','awards7','05694712'),
+('msmith',12,'bio8','sistatikes8','certificates8','awards8','023453344'),
+('jennyk',2,'bio9','sistatikes9','certificates9','awards9','023451232'),
+('miltH',9,'bio10','sistatikes10','certificates10','awards10','123432211'),
+('liagourma',1,'bio11','sistatikes11','certificates11','awards11','18765549');
+
+
+INSERT INTO administrator VALUES
+('xristanag'),
+('mairypap'),
+('iosifzax'),
+('marzax');
+
+
+
+INSERT INTO job VALUES
+(001,'2019-01-01', 1800, 'data analyst', 'Patra, Greece', 'hlgeor', '2018-07-13 10:00:00', '2018-12-20'),
+(111,'2019-02-01',1450, 'web programmer', 'Patra, Greece', 'vlasster', '2018-07-13 11:00:00', '2019-01-10'),
+(456,'2019-02-01', 2100, 'mobile app developer', 'Patra, Greece', 'akisgoud', '2018-10-24 12:00:00', '2018-01-12'),
+(789,'2018-12-25', 2700, 'NLP expert', 'Peiraias, Greece', 'efstang', '2018-10-10', '2018-11-10'),
+(123,'2019-03-01', 2100, 'Graphics designer', 'Peiraias, Greece', 'adonkab', '2018-10-10', '2019-02-01'),
+(321,'2011-03-01', 2300, 'Visualization expert', 'Peiraias, Greece','dionkok', '2018-10-20', '2019-01-10'),
+(654,'2019-05-01', 1850, 'web and mobile app programmer', 'Athina, Greece','swtirzan', '2018-11-20', '2019-04-12'),
+(987,'2019-05-01', 1600, 'graphics expert', 'Athina, Greece','hlgeor', '2018-11-20', '2019-04-12'),
+(147,'2019-05-01', 1850, 'DB expert', 'Athina, Greece','vlasster', '2018-11-20', '2019-04-12'),
+(258,'2019-04-01', 2100, 'AI expert', 'Sofia, Bulgaria', 'akisgoud', '2018-11-21', '2019-03-10'),
+(369,'2019-02-01', 2600, 'Algorithmic efficiency expert', 'Sofia, Bulgaria', 'efstang', '2018-11-01', '2019-01-16'),
+(963,'2019-03-01', 2800, 'web and media programmer', 'Oxford, London', 'adonkab', '2018-11-01', '2019-01-03');
+  
+
+INSERT INTO project VALUES
+('mnikol', 1, 'Minimal examples of data structures and algorithms in Python', 'https://github.com/mnikol/algorithms'),
+('mnikol', 2, 'Interactive Online Platform that Visualizes Algorithms from Code', 'https://github.com/mnikol/algorithm-visualizer'),
+('mnikol', 3, 'Repository which contains links and resources on different topics of Computer Science', 'https://github.com/mnikol/AlgoWiki'),
+('elenineo', 1, 'Essential Cheat Sheets for deep learning and machine learning researchers', 'https://github.com/elenineo/cheatsheets-ai'),
+('elenineo', 2, 'Python sample codes for robotics algorithms.', 'https://github.com/elenineo/PythonRobotics'),
+('zazahir23',1,'Go Graphics - 2D rendering in Go with a simple API.','https://github.com/mob@s/gg'),
+('zazahir23',2,'Draco is a library for compressing and decompressing 3D geometric meshes and point clouds. It is intended to improve the storage and transmission of 3D graphics.','https://github.com/mob@s/draco'),
+('zazahir23',3,'Data Discovery and Lineage for Big Data Ecosystem.','https://github.com/linkedin/WhereHows'),
+('jennyk', 1, 'HTML5 Mobile App UI templates created using Intel App Framework.', 'https://github.com/jenny/appframework-templates'),
+('jennyk', 2, 'Mobile Version of Travel sample App using Couchbase Lite 2.0.', 'https://github.com/jenny/mobile-travel-sample'),
+('jennyk', 3, 'Appium Demo App with clearly defined Page Object Pattern for React Native Mobile App. Test Language - Javascript.','https://github.com/jenny/Appium-Page-Object-Model-Demo'),
+('miltH', 1, 'WebGL2 powered geospatial visualization layers. offers an extensive catalog of pre-packaged visualization "layers", including ScatterplotLayer, ArcLayer, TextLayer, GeoJsonLayer, etc. The input to a layer is usually an array of JSON objects. Each layer offers highly-flexible API to customize how the data should be rendered.', 'https://github.com/milti/deck.gl'),
+('miltH', 2, 'Messy datasets? Missing values? missingno provides a small toolset of flexible and easy-to-use missing data visualizations and utilities that allows a quick visual summary of the completeness (or lack thereof) of the dataset.','https://github.com/milti/missingno'),
+('miltH', 3,'Repository to track the progress in Natural Language Processing (NLP), including the datasets and the current state-of-the-art for the most common NLP tasks','https://github.com/milti/NLP-progress'),
+('miltH', 4,'Supporting Rapid Prototyping with a Toolkit (incl. Datasets and Neural Network Layers)', 'https://github.com/milti/PyTorch-NLP')
+;
+
+
+INSERT INTO degree VALUES
+('Lysium certificate', '2nd Lysium of Aigaleo', 'LYKEIO'),
+('Computer and Infromatics Eng.', ' Patras University', 'UNIV'),
+('Electrical and Computer Eng.', 'Metsovio Polytexneio', 'UNIV'),
+('Computer Science Dipl.', 'Lancster University', 'UNIV'),
+('Computer Vision and Modelling', 'Princeton University', 'MASTER'),
+('Artificial Intelligence', ' Cambrigde University', 'MASTER'),
+('Big Data and Analytics', ' Imperial College London', 'MASTER'),
+('Advanced Rendering Techniques', 'Delft University of Technology', 'MASTER'),
+('Computer Science and Engineering', 'Delft University of Technology', 'UNIV'),
+('Data Science Bachelor','Eindhoven University of Technology', 'UNIV'),
+('PDEng Data Science', 'Eindhoven University of Technology', 'PHD'),
+('NLP related high efficiency algorithms', 'Patras University', 'PHD'),
+('Big Data Structures and Algorithms', 'Technical University of Denmark', 'MASTER');
+
+
+
+
+
+INSERT INTO has_degree VALUES
+('Lysium certificate', '2nd Lysium of Aigaleo','mnikol', 1999, 19.2),
+('Computer Science and Engineering', 'Delft University of Technology','mnikol',2000, 8.2),
+('PDEng Data Science', 'Eindhoven University of Technology','elenineo', 2006, 9),
+( 'Electrical and Computer Eng.', 'Metsovio Polytexneio', 'kwstasneo',1998, 7.6),
+( 'Computer Vision and Modelling', 'Princeton University','kwstasneo', 2001, 8.5),
+( 'Computer and Infromatics Eng.', ' Patras University', 'cleogeo',2003, 8.6),
+( 'Artificial Intelligence', ' Cambrigde University','zazahir23', 2008, 8),
+( 'NLP related high efficiency algorithms', 'Patras University','liagourma', 2013, 9),
+( 'Computer Science Dipl.', 'Lancster University','liagourma', 2001, 8.4),
+( 'Computer Vision and Modelling', 'Princeton University', 'jennyk',2006, 7.4),
+('Data Science Bachelor','Eindhoven University of Technology','jennyk',2004, 9.2),
+('Big Data and Analytics', ' Imperial College London', 'jennyk',2006, 8),
+('Big Data Structures and Algorithms', 'Technical University of Denmark','miltH', 2008, 8.2);
+
+
+
+
+
+INSERT INTO antikeim VALUES
+('Computer Science', 'Root element, no more general antikeim', NULL),
+('Databases', 'Level one element, child of Computer Science', 'Computer Science'),
+('AI', 'Level one element, child of Computer Science', 'Computer Science'),
+('Algorithms', 'Level one element, child of Computer Science', 'Computer Science'),
+('Networking', 'Level one element, child of Computer Science', 'Computer Science'),
+('Graphics', 'Level one element, child of Computer Science', 'Computer Science'),
+('2D', 'Level two element, child of Graphics', 'Graphics'),
+('3D', 'Level two element, child of Graphics', 'Graphics'),
+('Animation', 'Level two element, child of Graphics', 'Graphics'),
+('Programming', 'Level one element, child of Computer Science', 'Computer Science'),
+('Web Programming', 'Level two element, child of Programming', 'Programming'),
+('Mobile Apps', 'Level two element, child of Programming', 'Programming'),
+('Relational DBs', 'Level two element, child of Databases', 'Databases'),
+('Object-Oriented DBs', 'Level two element, child of Databases', 'Databases'),
+('NoSQL DBs', 'Level two element, child of Databases', 'Databases'),
+('Robotics', 'Level two element, child of AI', 'AI'),
+('NLP', 'Level two element, child of AI', 'AI'),
+('Information Retieval', 'Level three element, child of NLP', 'NLP'),
+('Language analysis', ' Level three element, child of NLP', 'NLP'),
+('Data structures', 'Level two element, child of Algorithms', 'Algorithms'),
+('Complexity and Efficiency', 'Level two element, child of Algorithms', 'Algorithms'),
+('Network setup and maintainance', 'Level two element, child of Networking', 'Networking'),
+('Device connectivity', 'Level two element, child of Networking', 'Networking');
+
+
+
+
+
+INSERT INTO needs VALUES
+(001, 'Databases'),
+(001,'Algorithms'),
+(111,'Programming'),
+(456,'Web Programming'),
+(456, 'Mobile Apps'),
+(789, 'Animation'),
+(123, 'AI'),
+(321, 'NLP'),
+(321, 'Graphics'),
+(654, 'Graphics'),
+(654, 'Algorithms'),
+(987, 'Programming'),
+(987, 'Web Programming'),
+(147, 'Mobile Apps'),
+(258, '2D'),
+(963, '3D'),
+(963, 'Databases'),
+(963, 'NoSQL DBs'),
+(456, 'AI'),
+(789, 'Complexity and Efficiency'),
+(147, 'Algorithms'),
+(258, 'Web Programming'),
+(369, 'Mobile Apps'),
+(111, 'Animation');
+
+
+
+INSERT INTO languages VALUES
+('mnikol', 'EN,SP,GR'),
+('abrown', 'GR,EN'),
+('elenineo', 'EN,FR'),
+('kwstasneo', 'GR,EN'),
+('cleogeo', 'GR,FR'),
+('zazahir23', 'EN,FR,SP'),
+('lionarF','EN,GR'),
+('liagourma','FR'),
+('msmith','SP,FR,EN,GR'),
+('jennyk','SP,GR'),
+('miltH','EN,GR');
+
+
+
+
+
+INSERT INTO evaluation VALUES
+('mnikol','hlgeor',001,'4','3','1','good',20)
+('mnikol','vlasster',111,'1',NULL,NULL,'not good',21),
+('abrown','akisgoud',456,'2','3','2','good',22),
+('abrown','hlgeor',001,NULL,'3','1','not good',23),
+('elenineo','efstang',789,'2','4','2','good',24),
+('elenineo','adonkab',123,'1',NULL,'0','not good',25),
+('kwstasneo','dionkok',321,'3','2','0','good',26),
+('kwstasneo','swtirzan',654,NULL,'4','2','good',27),
+('cleogeo','hlgeor',987,'4','4','2','good',28),
+('cleogeo','vlasster',147,'3',NULL,'1','not good',29),
+('zazahir23','akisgoud',258,'4','0','0','not good',30),
+('zazahir23','efstang',369,NULL,NULL,'2','not good',31),
+('lionarF','adonkab',963,'2','2','2','good',32),
+('lionarF','hlgeor',001,'3','1',NULL,'not good',33),
+('liagourma','vlasster',111,'4','4','2','good',34),
+('liagourma','akisgoud',456,'1','2',NULL,'not good',35),
+('msmith','efstang',789,'4','1','1','good',36),
+('msmith','adonkab',123,NULL,'2',NULL,'not good',37),
+('jennyk','dionkok',321,'2','4','2','good',38),
+('jennyk','swtirzan',654,NULL,'4','2','good',39),
+('miltH','akisgoud',456,'4','3','2','good',40),
+('miltH','adonkab',963,NULL,'3','2','good',41);
+
+
+
+
+INSERT INTO promotion VALUES
+('nikipap','hlgeor',272),
+('vasmitr','dionkok',123),
+('Theoxrist','swtirzan',789),
+('nikipap','efstang',369),
+('nikipap','efstang',654),
+('stavroskost','adonkab',963),
+('ptolkor','akisgoud',456)
+;
+
+
+insert into requestsevaluation VALUES
+('mnikol', 111),
+('abrown',001),
+('elenineo',123),
+('kwstasneo', 654),
+('cleogeo',147 ),
+('zazahir23',369 ),
+('lionarF',001),
+('liagourma',456),
+('msmith',123),
+('jennyk',654),
+('miltH',963);
+
+
+
+
+
+
+
+
+
+
+

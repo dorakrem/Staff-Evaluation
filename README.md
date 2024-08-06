@@ -1,6 +1,7 @@
 # Staff Evaluation
 
 A 2 member-team project for the CEID lab course of Database Systems.
+
 Database Design for a staff evaluation system of a group of companies.
 
 This project consisted of two parts: 

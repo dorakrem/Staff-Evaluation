@@ -1,8 +1,8 @@
 # Staff Evaluation
-Database Design for a company’s staff evaluation system.
+Database Design for a staff evaluation system of a group of companies.
 
 This project consisted of two parts: 
-* Part A: The database design for a company's staff evaluation system, based on the outlined ER diagram and Relational schema.
+* Part A: The database design for a staff evaluation system, based on the outlined ER diagram and Relational schema.
 * Part B: The implementation of graphical user interfaces (GUIs) using the programming language Python and the library Tkinter.
 
 Technologies and Frameworks:
